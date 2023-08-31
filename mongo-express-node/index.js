@@ -1,15 +1,15 @@
-import  express  from "express";
+import express from "express";
 import { MongoClient } from "mongodb";
-import * as dotenv from 'dotenv'
-dotenv.config()
+import * as dotenv from "dotenv";
+import { routeBooks } from "./routes/books.js";
+dotenv.config();
 // const express = require("express");
 // const { MongoClient } = require("mongodb");
 
 const app = express();
-const PORT = process.env.PORT
+const PORT = process.env.PORT;
 // console.log(process.env.MONGO_URL)
-const MONGO_URL = process.env.MONGO_URL
-
+const MONGO_URL = process.env.MONGO_URL;
 
 //mongo connect
 async function createConnection() {
@@ -18,7 +18,7 @@ async function createConnection() {
   console.log("Mongo is Connected Successfuly");
   return client;
 }
-const client = await createConnection();
+export const client = await createConnection();
 
 const books = [
   {
@@ -108,58 +108,15 @@ const books = [
 //inbuild middleware
 //tell express data is json
 //interceptor | converting body to json
-app.use(express.json())
+app.use(express.json());
 
 // Api End point
 app.get("/", (req, res) => {
   res.send("Happy Coding");
 });
 
-//get all books / query
-
-app.get("/books",  async (req, res) => {
-  const { language, rating } = req.query;
-  console.log(req.query, language);
-  // let filteredBook = books;
-  // if (language) {
-  //   filteredBook = books.filter((bk) => bk.language === language);
-  // }
-  if (req.query.rating) {
-    req.query.rating = +req.query.rating
-  }
-  const book = await client.db("b44-wd").collection("books").find(req.query).toArray()
-  res.send(book);
-});
-
-//get book by id
-
-app.get("/books/:id", async (req, res) => {
-  const { id } = req.params;
-  console.log(req.params, id);
-  const book = await client.db("b44-wd").collection("books").findOne({id: id})
-  //  const book = books.find((bk) => bk.id === id);
-  book ? res.send(book) : res.status(404).send({message: "No Books Found"})
-});
-
-
-
-//delete book by id
-
-app.delete("/books/:id", async (req, res) => {
-  const { id } = req.params;
-  console.log(req.params, id);
-  const book = await client.db("b44-wd").collection("books").deleteOne({id: id})
-  //  const book = books.find((bk) => bk.id === id);
-  res.send(book);
-});
-
-//add book
-
-app.post("/books", async (req,res) => {
-  const newBooks = req.body
-  console.log(req.body)
-  const result = await client.db("b44-wd").collection("books").insertMany(newBooks)
-  res.send(result)
-})
+app.use("/books", routeBooks)
 
 app.listen(PORT, () => console.log("Server started on PORT : ", PORT));
+
+
